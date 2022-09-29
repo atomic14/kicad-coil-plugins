@@ -19,15 +19,18 @@ def spiral(angle, distance, coil_inner_radius, coil_outer_radius, track_width, t
     # create a starting point in the center
     yield distance * np.cos(angle), distance * np.sin(angle)
     for theta in np.arange(0, number_turns * 2*np.pi, 0.1):
-        radius = coil_inner_radius + thickness * theta/(2*np.pi)
-        if direction == -1:
-            x = radius*np.cos(direction * (theta + np.pi))
-            y = radius*np.sin(direction * (theta + np.pi))
-        else:
-            x = radius*np.cos(direction * (theta))
-            y = radius*np.sin(direction * (theta))
-        if flip:
-            y = -y
+        radius_x = coil_inner_radius + thickness * theta/(2*np.pi)
+        radius_y =  coil_inner_radius + thickness * theta/(2*np.pi)
+        # if direction == -1:
+        #     x = radius_x * np.cos(direction * (theta + np.pi))
+        #     y = radius_y * np.sin(direction * (theta + np.pi))
+        # else:
+        alpha = theta - np.pi/2 * np.round(theta/(np.pi/2))
+        x = radius_x * np.cos(theta)/np.cos(alpha)
+        y = radius_y * np.sin(theta)/np.cos(alpha)
+
+        # x = radius_x * np.cos(direction * (theta))
+        # y = radius_y * np.sin(direction * (theta))            
         # rotate by angle
         x, y = x*np.cos(angle) - y*np.sin(angle), x*np.sin(angle) + y*np.cos(angle)
         # translate by distance
@@ -79,11 +82,11 @@ def create_coil(board, name, angle, stator_radius, coil_inner_radiue, coil_outer
     group.AddItem(via)
 
 
-class CoilPlugin(pcbnew.ActionPlugin):
+class SquareCoilPlugin(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Create coil 2"
+        self.name = "Create square coil"
         self.category = "Coils"
-        self.description = "Creates a coil"
+        self.description = "Creates a square coil"
         # self.show_toolbar_button = False # Optional, defaults to False
         # self.icon_file_name = os.path.join(os.path.dirname(__file__), 'simple_plugin.png') # Optional, defaults to ""
 
@@ -114,4 +117,4 @@ class CoilPlugin(pcbnew.ActionPlugin):
         create_coil(board, "C", 2 * coil_angle + np.pi, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, True)
 
 
-CoilPlugin().register()  # Instantiate and register to Pcbnew
+SquareCoilPlugin().register()  # Instantiate and register to Pcbnew
