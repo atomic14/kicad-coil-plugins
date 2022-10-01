@@ -1,4 +1,5 @@
 matplotlib
 jupyter
 numpy
-pcbnew
+pandas
+scikit-spatial
