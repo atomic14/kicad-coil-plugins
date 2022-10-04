@@ -1,87 +1,29 @@
 import pcbnew
-import numpy as np
-
-VIA_DIAM = 0.8
-VIA_DRILL = 0.4
-TRACK_THICKNESS = 0.2
-TRACK_SPACING = 0.2
-SEGMENT_LENGTH = 2 * 2*np.pi/360.0
-STATOR_RADIUS = 24
-STATOR_HOLE_RADIUS = 4
-INNER_RADIUS = 1
-# each coil is in the middle of the stator radius
-OUTER_RADIUS = (0.5 * STATOR_RADIUS * np.pi) / 6 - 2 * TRACK_SPACING
+import json
 
 
-def spiral(angle, distance, coil_inner_radius, coil_outer_radius, track_width, track_spacing, direction=1, flip=False):
-    thickness = track_width + track_spacing
-    number_turns = (coil_outer_radius - coil_inner_radius)//thickness
-    # create a starting point in the center
-    yield distance * np.cos(angle), distance * np.sin(angle)
-    for theta in np.arange(0, number_turns * 2*np.pi, 0.1):
-        radius = coil_inner_radius + thickness * theta/(2*np.pi)
-        if direction == -1:
-            x = radius*np.cos(direction * (theta + np.pi))
-            y = radius*np.sin(direction * (theta + np.pi))
-        else:
-            x = radius*np.cos(direction * (theta))
-            y = radius*np.sin(direction * (theta))
-        if flip:
-            y = -y
-        # rotate by angle
-        x, y = x*np.cos(angle) - y*np.sin(angle), x*np.sin(angle) + y*np.cos(angle)
-        # translate by distance
-        x, y = x + distance * np.cos(angle), y + distance * np.sin(angle)
-        yield x, y
-
-
-def create_tracks(board, group, coords, layer):
+def create_tracks(board, group, net, layer, thickness, coords):
     last_x = None
     last_y = None
-    for x, y in coords:
+    for coord in coords:
+        x = coord['x']
+        y = coord['y']
         track = pcbnew.PCB_TRACK(board)
         if last_x is not None:
             track.SetStart(pcbnew.wxPointMM(float(last_x), float(last_y)))
             track.SetEnd(pcbnew.wxPointMM(float(x), float(y)))
-            track.SetWidth(int(TRACK_THICKNESS * 1e6))
+            track.SetWidth(int(thickness * 1e6))
             track.SetLayer(layer)
+            track.SetNetCode(net.GetNetCode())
             board.Add(track)
             group.AddItem(track)
         last_x = x
         last_y = y
 
 
-def create_coil(board, name, angle, stator_radius, coil_inner_radiue, coil_outer_radius, track_thickness, track_spacing, flip=False):
-    group = pcbnew.PCB_GROUP(board)
-    board.Add(group)
-
-    txt = pcbnew.PCB_TEXT(board)
-    txt.SetText(name)
-    x = stator_radius/2 * np.cos(angle)
-    y = stator_radius/2 * np.sin(angle)
-    txt.SetPosition(pcbnew.wxPointMM(float(x), float(y)))
-    txt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
-    txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
-    txt.SetLayer(pcbnew.F_SilkS)
-    board.Add(txt)
-
-    coords = spiral(angle, stator_radius/2, coil_inner_radiue, coil_outer_radius, track_thickness, track_spacing, 1, flip)
-    create_tracks(board, group, coords, pcbnew.F_Cu)
-
-    coords = spiral(angle, stator_radius/2, coil_inner_radiue, coil_outer_radius, track_thickness, track_spacing, -1, flip)
-    create_tracks(board, group, coords, pcbnew.B_Cu)
-
-    via = pcbnew.PCB_VIA(board)
-    via.SetPosition(pcbnew.wxPointMM(float(stator_radius/2 * np.cos(angle)), float(stator_radius/2 * np.sin(angle))))
-    via.SetWidth(int(VIA_DIAM * 1e6))
-    via.SetDrill(int(VIA_DRILL * 1e6))
-    board.Add(via)
-    group.AddItem(via)
-
-
 class CoilPlugin(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Create coil 2"
+        self.name = "Create coil 3"
         self.category = "Coils"
         self.description = "Creates a coil"
         # self.show_toolbar_button = False # Optional, defaults to False
@@ -89,29 +31,56 @@ class CoilPlugin(pcbnew.ActionPlugin):
 
     def Run(self):
         board = pcbnew.GetBoard()
+        # load up the JSON with the coil parameters
+        coil_data = json.load(open("/Users/chrisgreening/Work/projects/pcb_motor/kicad-coil-plugins/coil.json"))
+        # parameters
+        track_width = coil_data['parameters']['trackWidth']
+        stator_hole_radius = coil_data['parameters']['statorHoleRadius']
+        via_diameter = coil_data['parameters']['viaDiameter']
+        via_drill_diameter = coil_data['parameters']['viaDrillDiameter']
+
+        # put everything in a group to make it easier to manage
+        pcb_group = pcbnew.PCB_GROUP(board)
+        board.Add(pcb_group)
+
         # create the center hole
         arc = pcbnew.PCB_SHAPE(board)
         arc.SetShape(pcbnew.SHAPE_T_ARC)
-        arc.SetStart(pcbnew.wxPointMM(STATOR_HOLE_RADIUS, 0))
+        arc.SetStart(pcbnew.wxPointMM(stator_hole_radius, 0))
         arc.SetCenter(pcbnew.wxPointMM(0, 0))
         arc.SetArcAngleAndEnd(0, False)
         arc.SetLayer(pcbnew.Edge_Cuts)
         arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
         board.Add(arc)
-        # create six coils equally spaced around the origin
-        coil_angle = 2*np.pi/6
+        pcb_group.AddItem(arc)
 
-        # coil A
-        create_coil(board, "A", 0 * coil_angle, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, False)
-        create_coil(board, "A", 0 * coil_angle + np.pi, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, True)
+        # create tracks
+        for track in coil_data["tracks"]:
+            # find the matching net for the track
+            net = board.FindNet(track['net'])
+            if net is None:
+                raise "Net not found: {}".format(track['net'])
+            create_tracks(board, pcb_group, net, pcbnew.F_Cu, track_width, track["f"])
+            create_tracks(board, pcb_group, net, pcbnew.B_Cu, track_width, track["b"])
 
-        # coil B
-        create_coil(board, "B", 1 * coil_angle, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, False)
-        create_coil(board, "B", 1 * coil_angle + np.pi, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, True)
+        # create the vias
+        for via in coil_data['vias']:
+            pcb_via = pcbnew.PCB_VIA(board)
+            pcb_via.SetPosition(pcbnew.wxPointMM(float(via['x']), float(via['y'])))
+            pcb_via.SetWidth(int(via_diameter * 1e6))
+            pcb_via.SetDrill(int(via_drill_diameter * 1e6))
+            board.Add(pcb_via)
+            pcb_group.AddItem(pcb_via)
 
-        # coil C
-        create_coil(board, "C", 2 * coil_angle, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, False)
-        create_coil(board, "C", 2 * coil_angle + np.pi, STATOR_RADIUS, INNER_RADIUS, OUTER_RADIUS, TRACK_THICKNESS, TRACK_SPACING, True)
+        # create any silk screen
+        for text in coil_data["silk"]:
+            pcb_txt = pcbnew.PCB_TEXT(board)
+            pcb_txt.SetText(text["text"])
+            pcb_txt.SetPosition(pcbnew.wxPointMM(text["x"], text["y"]))
+            pcb_txt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
+            pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
+            pcb_txt.SetLayer(pcbnew.F_SilkS)
+            board.Add(pcb_txt)
+            pcb_group.AddItem(pcb_txt)
 
-
-CoilPlugin().register()  # Instantiate and register to Pcbnew
+CoilPlugin().register() # Instantiate and register to Pcbnew])
