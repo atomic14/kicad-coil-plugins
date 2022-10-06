@@ -14,9 +14,10 @@ def create_tracks(board, group, net, layer, thickness, coords):
             track.SetEnd(pcbnew.wxPointMM(float(x), float(y)))
             track.SetWidth(int(thickness * 1e6))
             track.SetLayer(layer)
-            track.SetNetCode(net.GetNetCode())
+            if net is not None:
+                track.SetNetCode(net.GetNetCode())
             board.Add(track)
-            group.AddItem(track)
+            # group.AddItem(track)
         last_x = x
         last_y = y
 
@@ -41,7 +42,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
 
         # put everything in a group to make it easier to manage
         pcb_group = pcbnew.PCB_GROUP(board)
-        board.Add(pcb_group)
+        # board.Add(pcb_group)
 
         # create the center hole
         arc = pcbnew.PCB_SHAPE(board)
@@ -52,16 +53,18 @@ class CoilPlugin(pcbnew.ActionPlugin):
         arc.SetLayer(pcbnew.Edge_Cuts)
         arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
         board.Add(arc)
-        pcb_group.AddItem(arc)
+        # pcb_group.AddItem(arc)
 
         # create tracks
-        for track in coil_data["tracks"]:
+        for track in coil_data["tracks"]['f']:
             # find the matching net for the track
-            net = board.FindNet(track['net'])
-            if net is None:
-                raise "Net not found: {}".format(track['net'])
-            create_tracks(board, pcb_group, net, pcbnew.F_Cu, track_width, track["f"])
-            create_tracks(board, pcb_group, net, pcbnew.B_Cu, track_width, track["b"])
+            # net = board.FindNet(track['net'])
+            # if net is None:
+            #     raise "Net not found: {}".format(track['net'])
+            create_tracks(board, pcb_group, None, pcbnew.F_Cu, track_width, track)
+        
+        for track in coil_data["tracks"]['b']:
+            create_tracks(board, pcb_group, None, pcbnew.B_Cu, track_width, track)
 
         # create the vias
         for via in coil_data['vias']:
@@ -70,7 +73,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
             pcb_via.SetWidth(int(via_diameter * 1e6))
             pcb_via.SetDrill(int(via_drill_diameter * 1e6))
             board.Add(pcb_via)
-            pcb_group.AddItem(pcb_via)
+            # pcb_group.AddItem(pcb_via)
 
         # create any silk screen
         for text in coil_data["silk"]:
@@ -81,6 +84,6 @@ class CoilPlugin(pcbnew.ActionPlugin):
             pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
             pcb_txt.SetLayer(pcbnew.F_SilkS)
             board.Add(pcb_txt)
-            pcb_group.AddItem(pcb_txt)
+            # pcb_group.AddItem(pcb_txt)
 
 CoilPlugin().register() # Instantiate and register to Pcbnew])
