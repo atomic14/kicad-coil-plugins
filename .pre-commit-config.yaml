@@ -1,0 +1,10 @@
+repos:
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 0.8.0
+    hooks:
+      - id: nbqa-black
+        args: [--nbqa-mutate]
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.4.0
+    hooks:
+      - id: nbstripout
