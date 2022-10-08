@@ -18,7 +18,7 @@ def create_tracks(board, group, net, layer, thickness, coords):
             if net is not None:
                 track.SetNetCode(net.GetNetCode())
             board.Add(track)
-            # group.AddItem(track)
+            group.AddItem(track)
         last_x = x
         last_y = y
 
@@ -43,12 +43,13 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 # parameters
                 track_width = coil_data["parameters"]["trackWidth"]
                 stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
+                stator_radius = coil_data["parameters"]["statorRadius"]
                 via_diameter = coil_data["parameters"]["viaDiameter"]
                 via_drill_diameter = coil_data["parameters"]["viaDrillDiameter"]
 
                 # put everything in a group to make it easier to manage
                 pcb_group = pcbnew.PCB_GROUP(board)
-                # board.Add(pcb_group)
+                board.Add(pcb_group)
 
                 # create the center hole
                 arc = pcbnew.PCB_SHAPE(board)
@@ -59,7 +60,18 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 arc.SetLayer(pcbnew.Edge_Cuts)
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
-                # pcb_group.AddItem(arc)
+                pcb_group.AddItem(arc)
+
+                # create the stator outline
+                arc = pcbnew.PCB_SHAPE(board)
+                arc.SetShape(pcbnew.SHAPE_T_ARC)
+                arc.SetStart(pcbnew.wxPointMM(stator_radius, 0))
+                arc.SetCenter(pcbnew.wxPointMM(0, 0))
+                arc.SetArcAngleAndEnd(0, False)
+                arc.SetLayer(pcbnew.Edge_Cuts)
+                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                board.Add(arc)
+                pcb_group.AddItem(arc)
 
                 # create tracks
                 for track in coil_data["tracks"]["f"]:
@@ -86,7 +98,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_via.SetDrill(int(via_drill_diameter * 1e6))
                     pcb_via.SetNetCode(net.GetNetCode())
                     board.Add(pcb_via)
-                    # pcb_group.AddItem(pcb_via)
+                    pcb_group.AddItem(pcb_via)
 
                 # create any silk screen
                 for text in coil_data["silk"]:
@@ -97,7 +109,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
                     pcb_txt.SetLayer(pcbnew.F_SilkS)
                     board.Add(pcb_txt)
-                    # pcb_group.AddItem(pcb_txt)
+                    pcb_group.AddItem(pcb_txt)
 
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])
