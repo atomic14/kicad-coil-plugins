@@ -1,5 +1,6 @@
 import pcbnew
 import json
+import wx
 
 
 def create_tracks(board, group, net, layer, thickness, coords):
@@ -31,65 +32,72 @@ class CoilPlugin(pcbnew.ActionPlugin):
         # self.icon_file_name = os.path.join(os.path.dirname(__file__), 'simple_plugin.png') # Optional, defaults to ""
 
     def Run(self):
-        board = pcbnew.GetBoard()
-        # load up the JSON with the coil parameters
-        coil_data = json.load(
-            open(
-                "/Users/chrisgreening/Work/projects/pcb_motor/kicad-coil-plugins/coil.json"
-            )
-        )
-        # parameters
-        track_width = coil_data["parameters"]["trackWidth"]
-        stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
-        via_diameter = coil_data["parameters"]["viaDiameter"]
-        via_drill_diameter = coil_data["parameters"]["viaDrillDiameter"]
+        # launch a file picker dialog to get the coil file
+        dialog = wx.FileDialog(None, "Choose a coil file", "", "", "*.json", wx.FD_OPEN)
+        if dialog.ShowModal() == wx.ID_OK:
+            # read the file
+            with open(dialog.GetPath(), "r") as f:
+                board = pcbnew.GetBoard()
+                # load up the JSON with the coil parameters
+                coil_data = json.load(f)
+                # parameters
+                track_width = coil_data["parameters"]["trackWidth"]
+                stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
+                via_diameter = coil_data["parameters"]["viaDiameter"]
+                via_drill_diameter = coil_data["parameters"]["viaDrillDiameter"]
 
-        # put everything in a group to make it easier to manage
-        pcb_group = pcbnew.PCB_GROUP(board)
-        # board.Add(pcb_group)
+                # put everything in a group to make it easier to manage
+                pcb_group = pcbnew.PCB_GROUP(board)
+                # board.Add(pcb_group)
 
-        # create the center hole
-        arc = pcbnew.PCB_SHAPE(board)
-        arc.SetShape(pcbnew.SHAPE_T_ARC)
-        arc.SetStart(pcbnew.wxPointMM(stator_hole_radius, 0))
-        arc.SetCenter(pcbnew.wxPointMM(0, 0))
-        arc.SetArcAngleAndEnd(0, False)
-        arc.SetLayer(pcbnew.Edge_Cuts)
-        arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
-        board.Add(arc)
-        # pcb_group.AddItem(arc)
+                # create the center hole
+                arc = pcbnew.PCB_SHAPE(board)
+                arc.SetShape(pcbnew.SHAPE_T_ARC)
+                arc.SetStart(pcbnew.wxPointMM(stator_hole_radius, 0))
+                arc.SetCenter(pcbnew.wxPointMM(0, 0))
+                arc.SetArcAngleAndEnd(0, False)
+                arc.SetLayer(pcbnew.Edge_Cuts)
+                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                board.Add(arc)
+                # pcb_group.AddItem(arc)
 
-        # create tracks
-        for track in coil_data["tracks"]["f"]:
-            # find the matching net for the track
-            net = board.FindNet("coils")
-            if net is None:
-                raise "Net not found: {}".format(track["net"])
-            create_tracks(board, pcb_group, net, pcbnew.F_Cu, track_width, track)
+                # create tracks
+                for track in coil_data["tracks"]["f"]:
+                    # find the matching net for the track
+                    net = board.FindNet("coils")
+                    if net is None:
+                        raise "Net not found: {}".format(track["net"])
+                    create_tracks(
+                        board, pcb_group, net, pcbnew.F_Cu, track_width, track
+                    )
 
-        for track in coil_data["tracks"]["b"]:
-            create_tracks(board, pcb_group, net, pcbnew.B_Cu, track_width, track)
+                for track in coil_data["tracks"]["b"]:
+                    create_tracks(
+                        board, pcb_group, net, pcbnew.B_Cu, track_width, track
+                    )
 
-        # create the vias
-        for via in coil_data["vias"]:
-            pcb_via = pcbnew.PCB_VIA(board)
-            pcb_via.SetPosition(pcbnew.wxPointMM(float(via["x"]), float(via["y"])))
-            pcb_via.SetWidth(int(via_diameter * 1e6))
-            pcb_via.SetDrill(int(via_drill_diameter * 1e6))
-            pcb_via.SetNetCode(net.GetNetCode())
-            board.Add(pcb_via)
-            # pcb_group.AddItem(pcb_via)
+                # create the vias
+                for via in coil_data["vias"]:
+                    pcb_via = pcbnew.PCB_VIA(board)
+                    pcb_via.SetPosition(
+                        pcbnew.wxPointMM(float(via["x"]), float(via["y"]))
+                    )
+                    pcb_via.SetWidth(int(via_diameter * 1e6))
+                    pcb_via.SetDrill(int(via_drill_diameter * 1e6))
+                    pcb_via.SetNetCode(net.GetNetCode())
+                    board.Add(pcb_via)
+                    # pcb_group.AddItem(pcb_via)
 
-        # create any silk screen
-        for text in coil_data["silk"]:
-            pcb_txt = pcbnew.PCB_TEXT(board)
-            pcb_txt.SetText(text["text"])
-            pcb_txt.SetPosition(pcbnew.wxPointMM(text["x"], text["y"]))
-            pcb_txt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
-            pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
-            pcb_txt.SetLayer(pcbnew.F_SilkS)
-            board.Add(pcb_txt)
-            # pcb_group.AddItem(pcb_txt)
+                # create any silk screen
+                for text in coil_data["silk"]:
+                    pcb_txt = pcbnew.PCB_TEXT(board)
+                    pcb_txt.SetText(text["text"])
+                    pcb_txt.SetPosition(pcbnew.wxPointMM(text["x"], text["y"]))
+                    pcb_txt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
+                    pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
+                    pcb_txt.SetLayer(pcbnew.F_SilkS)
+                    board.Add(pcb_txt)
+                    # pcb_group.AddItem(pcb_txt)
 
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])
