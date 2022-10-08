@@ -6,8 +6,8 @@ def create_tracks(board, group, net, layer, thickness, coords):
     last_x = None
     last_y = None
     for coord in coords:
-        x = coord['x']
-        y = coord['y']
+        x = coord["x"]
+        y = coord["y"]
         track = pcbnew.PCB_TRACK(board)
         if last_x is not None:
             track.SetStart(pcbnew.wxPointMM(float(last_x), float(last_y)))
@@ -33,12 +33,16 @@ class CoilPlugin(pcbnew.ActionPlugin):
     def Run(self):
         board = pcbnew.GetBoard()
         # load up the JSON with the coil parameters
-        coil_data = json.load(open("/Users/chrisgreening/Work/projects/pcb_motor/kicad-coil-plugins/coil.json"))
+        coil_data = json.load(
+            open(
+                "/Users/chrisgreening/Work/projects/pcb_motor/kicad-coil-plugins/coil.json"
+            )
+        )
         # parameters
-        track_width = coil_data['parameters']['trackWidth']
-        stator_hole_radius = coil_data['parameters']['statorHoleRadius']
-        via_diameter = coil_data['parameters']['viaDiameter']
-        via_drill_diameter = coil_data['parameters']['viaDrillDiameter']
+        track_width = coil_data["parameters"]["trackWidth"]
+        stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
+        via_diameter = coil_data["parameters"]["viaDiameter"]
+        via_drill_diameter = coil_data["parameters"]["viaDrillDiameter"]
 
         # put everything in a group to make it easier to manage
         pcb_group = pcbnew.PCB_GROUP(board)
@@ -56,22 +60,23 @@ class CoilPlugin(pcbnew.ActionPlugin):
         # pcb_group.AddItem(arc)
 
         # create tracks
-        for track in coil_data["tracks"]['f']:
+        for track in coil_data["tracks"]["f"]:
             # find the matching net for the track
-            # net = board.FindNet(track['net'])
-            # if net is None:
-            #     raise "Net not found: {}".format(track['net'])
-            create_tracks(board, pcb_group, None, pcbnew.F_Cu, track_width, track)
-        
-        for track in coil_data["tracks"]['b']:
-            create_tracks(board, pcb_group, None, pcbnew.B_Cu, track_width, track)
+            net = board.FindNet("coils")
+            if net is None:
+                raise "Net not found: {}".format(track["net"])
+            create_tracks(board, pcb_group, net, pcbnew.F_Cu, track_width, track)
+
+        for track in coil_data["tracks"]["b"]:
+            create_tracks(board, pcb_group, net, pcbnew.B_Cu, track_width, track)
 
         # create the vias
-        for via in coil_data['vias']:
+        for via in coil_data["vias"]:
             pcb_via = pcbnew.PCB_VIA(board)
-            pcb_via.SetPosition(pcbnew.wxPointMM(float(via['x']), float(via['y'])))
+            pcb_via.SetPosition(pcbnew.wxPointMM(float(via["x"]), float(via["y"])))
             pcb_via.SetWidth(int(via_diameter * 1e6))
             pcb_via.SetDrill(int(via_drill_diameter * 1e6))
+            pcb_via.SetNetCode(net.GetNetCode())
             board.Add(pcb_via)
             # pcb_group.AddItem(pcb_via)
 
@@ -86,4 +91,5 @@ class CoilPlugin(pcbnew.ActionPlugin):
             board.Add(pcb_txt)
             # pcb_group.AddItem(pcb_txt)
 
-CoilPlugin().register() # Instantiate and register to Pcbnew])
+
+CoilPlugin().register()  # Instantiate and register to Pcbnew])
