@@ -13,15 +13,8 @@ jupyter notebook
 
 ## Getting KiCad set up
 
-This is a bit of a pain as KiCad comes with its own python installation. You'll need to install any required dependencies into this installation.
+Add the plugin to KiCad by symbolically linking it to the `kicad_plugins` directory.
 
 ```bash
-cd /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin
-./pip3 install numpy scikit-spatial
-```
-
-You can now link any plugins that you want to make available to KiCad by symbolic linking them into the `kicad_plugins` directory.
-
-```bash
-ln -s ${PWD}/coil_plugin_v2.py ~/Documents/KiCad/6.0/scripting/plugins/coil_plugin_v2.py
+ln -s ${PWD}/coil_plugin.py ~/Documents/KiCad/6.0/scripting/plugins/coil_plugin.py
 ```
