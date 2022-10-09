@@ -51,28 +51,6 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 pcb_group = pcbnew.PCB_GROUP(board)
                 # board.Add(pcb_group)
 
-                # create the center hole
-                arc = pcbnew.PCB_SHAPE(board)
-                arc.SetShape(pcbnew.SHAPE_T_ARC)
-                arc.SetStart(pcbnew.wxPointMM(stator_hole_radius, 0))
-                arc.SetCenter(pcbnew.wxPointMM(0, 0))
-                arc.SetArcAngleAndEnd(0, False)
-                arc.SetLayer(pcbnew.Edge_Cuts)
-                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
-                board.Add(arc)
-                # pcb_group.AddItem(arc)
-
-                # create the stator outline
-                arc = pcbnew.PCB_SHAPE(board)
-                arc.SetShape(pcbnew.SHAPE_T_ARC)
-                arc.SetStart(pcbnew.wxPointMM(stator_radius, 0))
-                arc.SetCenter(pcbnew.wxPointMM(0, 0))
-                arc.SetArcAngleAndEnd(0, False)
-                arc.SetLayer(pcbnew.Edge_Cuts)
-                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
-                board.Add(arc)
-                # pcb_group.AddItem(arc)
-
                 # create tracks
                 for track in coil_data["tracks"]["f"]:
                     # find the matching net for the track
@@ -128,5 +106,28 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     # pcb_group.AddItem(pcb_txt)
 
 
+                # create the stator outline
+                arc = pcbnew.PCB_SHAPE(board)
+                arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
+                arc.SetFilled(False)
+                arc.SetStart(pcbnew.wxPointMM(0, 0))
+                arc.SetEnd(pcbnew.wxPointMM(stator_radius, 0))
+                arc.SetCenter(pcbnew.wxPointMM(0, 0))                
+                arc.SetLayer(pcbnew.Edge_Cuts)
+                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                board.Add(arc)
+                # pcb_group.AddItem(arc)
+
+                # create the center hole
+                arc = pcbnew.PCB_SHAPE(board)
+                arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
+                arc.SetFilled(False)
+                arc.SetStart(pcbnew.wxPointMM(0, 0))
+                arc.SetEnd(pcbnew.wxPointMM(stator_hole_radius, 0))
+                arc.SetCenter(pcbnew.wxPointMM(0, 0))
+                arc.SetLayer(pcbnew.Edge_Cuts)
+                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                board.Add(arc)
+                # pcb_group.AddItem(arc)
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])
