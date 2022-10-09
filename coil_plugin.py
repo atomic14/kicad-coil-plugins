@@ -18,7 +18,7 @@ def create_tracks(board, group, net, layer, thickness, coords):
             if net is not None:
                 track.SetNetCode(net.GetNetCode())
             board.Add(track)
-            group.AddItem(track)
+            # group.AddItem(track)
         last_x = x
         last_y = y
 
@@ -49,7 +49,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
 
                 # put everything in a group to make it easier to manage
                 pcb_group = pcbnew.PCB_GROUP(board)
-                board.Add(pcb_group)
+                # board.Add(pcb_group)
 
                 # create the center hole
                 arc = pcbnew.PCB_SHAPE(board)
@@ -60,7 +60,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 arc.SetLayer(pcbnew.Edge_Cuts)
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
-                pcb_group.AddItem(arc)
+                # pcb_group.AddItem(arc)
 
                 # create the stator outline
                 arc = pcbnew.PCB_SHAPE(board)
@@ -71,14 +71,16 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 arc.SetLayer(pcbnew.Edge_Cuts)
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
-                pcb_group.AddItem(arc)
+                # pcb_group.AddItem(arc)
 
                 # create tracks
                 for track in coil_data["tracks"]["f"]:
                     # find the matching net for the track
                     net = board.FindNet("coils")
                     if net is None:
-                        raise "Net not found: {}".format(track["net"])
+                        net = pcbnew.NETINFO_ITEM(board, "coils")
+                        board.Add(net)
+                        # raise "Net not found: {}".format(track["net"])
                     create_tracks(
                         board, pcb_group, net, pcbnew.F_Cu, track_width, track
                     )
@@ -98,7 +100,21 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_via.SetDrill(int(via_drill_diameter * 1e6))
                     pcb_via.SetNetCode(net.GetNetCode())
                     board.Add(pcb_via)
-                    pcb_group.AddItem(pcb_via)
+                    # pcb_group.AddItem(pcb_via)
+
+                # create the pads
+                for pad in coil_data["pads"]:
+                    module = pcbnew.FOOTPRINT(board)
+                    board.Add(module)
+                    pcb_pad = pcbnew.PAD(module)
+                    pcb_pad.SetSize(pcbnew.wxSizeMM(1.7, 1.7))
+                    pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+                    pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
+                    pcb_pad.SetLayerSet(pcb_pad.PTHMask())
+                    pcb_pad.SetDrillSize(pcbnew.wxSizeMM(1.0, 1.0))
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(pad["x"], pad["y"]))
+                    pcb_pad.SetNetCode(net.GetNetCode())
+                    module.Add(pcb_pad)
 
                 # create any silk screen
                 for text in coil_data["silk"]:
@@ -109,7 +125,8 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
                     pcb_txt.SetLayer(pcbnew.F_SilkS)
                     board.Add(pcb_txt)
-                    pcb_group.AddItem(pcb_txt)
+                    # pcb_group.AddItem(pcb_txt)
+
 
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])
