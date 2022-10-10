@@ -83,6 +83,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 # create the pads
                 for pad in coil_data["pads"]:
                     module = pcbnew.FOOTPRINT(board)
+                    module.SetPosition(pcbnew.wxPointMM(pad["x"], pad["y"]))
                     board.Add(module)
                     pcb_pad = pcbnew.PAD(module)
                     pcb_pad.SetSize(pcbnew.wxSizeMM(1.7, 1.7))
