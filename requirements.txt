@@ -3,4 +3,4 @@ jupyter
 numpy
 pandas
 scikit-spatial
-scipy
+pre-commit

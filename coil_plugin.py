@@ -44,6 +44,8 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 track_width = coil_data["parameters"]["trackWidth"]
                 stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
                 stator_radius = coil_data["parameters"]["statorRadius"]
+                pad_diameter = coil_data["parameters"]["padDiameter"]
+                pad_drill = coil_data["parameters"]["padDrillDiameter"]
                 via_diameter = coil_data["parameters"]["viaDiameter"]
                 via_drill_diameter = coil_data["parameters"]["viaDrillDiameter"]
 
@@ -86,11 +88,11 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     module.SetPosition(pcbnew.wxPointMM(pad["x"], pad["y"]))
                     board.Add(module)
                     pcb_pad = pcbnew.PAD(module)
-                    pcb_pad.SetSize(pcbnew.wxSizeMM(1.7, 1.7))
+                    pcb_pad.SetSize(pcbnew.wxSizeMM(pad_diameter, pad_diameter))
                     pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
                     pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
                     pcb_pad.SetLayerSet(pcb_pad.PTHMask())
-                    pcb_pad.SetDrillSize(pcbnew.wxSizeMM(1.0, 1.0))
+                    pcb_pad.SetDrillSize(pcbnew.wxSizeMM(pad_drill, pad_drill))
                     pcb_pad.SetPosition(pcbnew.wxPointMM(pad["x"], pad["y"]))
                     pcb_pad.SetNetCode(net.GetNetCode())
                     module.Add(pcb_pad)
