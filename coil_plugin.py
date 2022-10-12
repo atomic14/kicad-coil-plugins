@@ -4,12 +4,16 @@ import wx
 import math
 
 
+CENTER_X = 150
+CENTER_Y = 100
+
+
 def create_tracks(board, group, net, layer, thickness, coords):
     last_x = None
     last_y = None
     for coord in coords:
-        x = coord["x"]
-        y = coord["y"]
+        x = coord["x"] + CENTER_X
+        y = coord["y"] + CENTER_Y
         track = pcbnew.PCB_TRACK(board)
         if last_x is not None:
             track.SetStart(pcbnew.wxPointMM(float(last_x), float(last_y)))
@@ -75,7 +79,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 for via in coil_data["vias"]:
                     pcb_via = pcbnew.PCB_VIA(board)
                     pcb_via.SetPosition(
-                        pcbnew.wxPointMM(float(via["x"]), float(via["y"]))
+                        pcbnew.wxPointMM(via["x"] + CENTER_X, via["y"] + CENTER_Y)
                     )
                     pcb_via.SetWidth(int(via_diameter * 1e6))
                     pcb_via.SetDrill(int(via_drill_diameter * 1e6))
@@ -85,8 +89,10 @@ class CoilPlugin(pcbnew.ActionPlugin):
 
                 # create the pins
                 for pin in coil_data["pins"]:
+                    x = pin["x"] + CENTER_X
+                    y = pin["y"] + CENTER_Y
                     module = pcbnew.FOOTPRINT(board)
-                    module.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
+                    module.SetPosition(pcbnew.wxPointMM(x, y))
                     board.Add(module)
                     pcb_pad = pcbnew.PAD(module)
                     pcb_pad.SetSize(pcbnew.wxSizeMM(pin_diameter, pin_diameter))
@@ -94,7 +100,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
                     pcb_pad.SetLayerSet(pcb_pad.PTHMask())
                     pcb_pad.SetDrillSize(pcbnew.wxSizeMM(pin_drill, pin_drill))
-                    pcb_pad.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
                     pcb_pad.SetNetCode(net.GetNetCode())
                     module.Add(pcb_pad)
 
@@ -102,8 +108,10 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 lset = pcbnew.LSET()
                 lset.AddLayer(pcbnew.B_Cu)
                 for pin in coil_data["pads"]:
+                    x = pin["x"] + CENTER_X
+                    y = pin["y"] + CENTER_Y
                     module = pcbnew.FOOTPRINT(board)
-                    module.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
+                    module.SetPosition(pcbnew.wxPointMM(x, y))
                     board.Add(module)
                     pcb_pad = pcbnew.PAD(module)
                     pcb_pad.SetSize(pcbnew.wxSizeMM(pin["width"], pin["height"]))
@@ -111,20 +119,20 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
                     pcb_pad.SetLayerSet(pcb_pad.SMDMask())
                     # pcb_pad.SetLayerSet(lset)
-                    pcb_pad.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
                     pcb_pad.SetNetCode(net.GetNetCode())
-                    pcb_pad.Flip(pcbnew.wxPointMM(pin["x"], pin["y"]), False)
+                    pcb_pad.Flip(pcbnew.wxPointMM(x, y), False)
                     module.Add(pcb_pad)
 
                 # create any silk screen
                 for text in coil_data["silk"]:
+                    x = text["x"] + CENTER_X
+                    y = text["y"] + CENTER_Y
                     pcb_txt = pcbnew.PCB_TEXT(board)
                     pcb_txt.SetText(text["text"])
-                    pcb_txt.SetPosition(pcbnew.wxPointMM(text["x"], text["y"]))
+                    pcb_txt.SetPosition(pcbnew.wxPointMM(x, y))
                     pcb_txt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
-                    pcb_txt.Rotate(
-                        pcbnew.wxPointMM(text["x"], text["y"]), text["angle"]
-                    )
+                    pcb_txt.Rotate(pcbnew.wxPointMM(x, y), text["angle"])
                     pcb_txt.SetTextSize(
                         pcbnew.wxSize(
                             text["size"] * pcbnew.IU_PER_MM,
@@ -133,14 +141,16 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     )
                     pcb_txt.SetLayer(pcbnew.F_SilkS)
                     if text["layer"] == "b":
-                        pcb_txt.Flip(pcbnew.wxPointMM(text["x"], text["y"]), True)
+                        pcb_txt.Flip(pcbnew.wxPointMM(x, y), True)
                     board.Add(pcb_txt)
                     # pcb_group.AddItem(pcb_txt)
 
                 # create the mounting holes
                 for hole in coil_data["mountingHoles"]:
+                    x = hole["x"] + CENTER_X
+                    y = hole["y"] + CENTER_Y
                     module = pcbnew.FOOTPRINT(board)
-                    module.SetPosition(pcbnew.wxPointMM(hole["x"], hole["y"]))
+                    module.SetPosition(pcbnew.wxPointMM(x, y))
                     board.Add(module)
                     pcb_pad = pcbnew.PAD(module)
                     pcb_pad.SetSize(pcbnew.wxSizeMM(hole["diameter"], hole["diameter"]))
@@ -150,7 +160,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_pad.SetDrillSize(
                         pcbnew.wxSizeMM(hole["diameter"], hole["diameter"])
                     )
-                    pcb_pad.SetPosition(pcbnew.wxPointMM(hole["x"], hole["y"]))
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
                     module.Add(pcb_pad)
                     # pcb_group.AddItem(pcb_hole)
 
@@ -158,9 +168,9 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 arc = pcbnew.PCB_SHAPE(board)
                 arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
                 arc.SetFilled(False)
-                arc.SetStart(pcbnew.wxPointMM(0, 0))
-                arc.SetEnd(pcbnew.wxPointMM(stator_radius, 0))
-                arc.SetCenter(pcbnew.wxPointMM(0, 0))
+                arc.SetStart(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
+                arc.SetEnd(pcbnew.wxPointMM(CENTER_X + stator_radius, CENTER_Y))
+                arc.SetCenter(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
                 arc.SetLayer(pcbnew.Edge_Cuts)
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
@@ -170,9 +180,9 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 arc = pcbnew.PCB_SHAPE(board)
                 arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
                 arc.SetFilled(False)
-                arc.SetStart(pcbnew.wxPointMM(0, 0))
-                arc.SetEnd(pcbnew.wxPointMM(stator_hole_radius, 0))
-                arc.SetCenter(pcbnew.wxPointMM(0, 0))
+                arc.SetStart(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
+                arc.SetEnd(pcbnew.wxPointMM(CENTER_X + stator_hole_radius, CENTER_Y))
+                arc.SetCenter(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
                 arc.SetLayer(pcbnew.Edge_Cuts)
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
