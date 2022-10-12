@@ -49,30 +49,6 @@ def flip_x(points):
     return [[-x, y] for x, y in points]
 
 
-def create_pad(radius, angle, name):
-    return {
-        "x": radius * np.cos(np.deg2rad(angle)),
-        "y": radius * np.sin(np.deg2rad(angle)),
-        "name": name,
-    }
-
-
-def create_silk(point, text):
-    return {
-        "x": point[0],
-        "y": point[1],
-        "text": text,
-    }
-
-
-def create_via(point):
-    return {"x": point[0], "y": point[1]}
-
-
-def create_track(points):
-    return [{"x": x, "y": y} for x, y in points]
-
-
 def optimize_points(points):
     # follow the line and remove points that are in the same direction as the previous poin
     # keep doing this until the direction changes significantly

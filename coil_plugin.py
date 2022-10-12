@@ -44,8 +44,8 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 track_width = coil_data["parameters"]["trackWidth"]
                 stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
                 stator_radius = coil_data["parameters"]["statorRadius"]
-                pad_diameter = coil_data["parameters"]["padDiameter"]
-                pad_drill = coil_data["parameters"]["padDrillDiameter"]
+                pin_diameter = coil_data["parameters"]["pinDiameter"]
+                pin_drill = coil_data["parameters"]["pinDrillDiameter"]
                 via_diameter = coil_data["parameters"]["viaDiameter"]
                 via_drill_diameter = coil_data["parameters"]["viaDrillDiameter"]
 
@@ -82,19 +82,37 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     board.Add(pcb_via)
                     # pcb_group.AddItem(pcb_via)
 
-                # create the pads
-                for pad in coil_data["pads"]:
+                # create the pins
+                for pin in coil_data["pins"]:
                     module = pcbnew.FOOTPRINT(board)
-                    module.SetPosition(pcbnew.wxPointMM(pad["x"], pad["y"]))
+                    module.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
                     board.Add(module)
                     pcb_pad = pcbnew.PAD(module)
-                    pcb_pad.SetSize(pcbnew.wxSizeMM(pad_diameter, pad_diameter))
+                    pcb_pad.SetSize(pcbnew.wxSizeMM(pin_diameter, pin_diameter))
                     pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
                     pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
                     pcb_pad.SetLayerSet(pcb_pad.PTHMask())
-                    pcb_pad.SetDrillSize(pcbnew.wxSizeMM(pad_drill, pad_drill))
-                    pcb_pad.SetPosition(pcbnew.wxPointMM(pad["x"], pad["y"]))
+                    pcb_pad.SetDrillSize(pcbnew.wxSizeMM(pin_drill, pin_drill))
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
                     pcb_pad.SetNetCode(net.GetNetCode())
+                    module.Add(pcb_pad)
+
+                # create the pads
+                lset = pcbnew.LSET()
+                lset.AddLayer(pcbnew.B_Cu)
+                for pin in coil_data["pads"]:
+                    module = pcbnew.FOOTPRINT(board)
+                    module.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
+                    board.Add(module)
+                    pcb_pad = pcbnew.PAD(module)
+                    pcb_pad.SetSize(pcbnew.wxSizeMM(pin["width"], pin["height"]))
+                    pcb_pad.SetShape(pcbnew.PAD_SHAPE_RECT)
+                    pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+                    pcb_pad.SetLayerSet(pcb_pad.SMDMask())
+                    # pcb_pad.SetLayerSet(lset)
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(pin["x"], pin["y"]))
+                    pcb_pad.SetNetCode(net.GetNetCode())
+                    pcb_pad.Flip(pcbnew.wxPointMM(pin["x"], pin["y"]), False)
                     module.Add(pcb_pad)
 
                 # create any silk screen
@@ -108,14 +126,13 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     board.Add(pcb_txt)
                     # pcb_group.AddItem(pcb_txt)
 
-
                 # create the stator outline
                 arc = pcbnew.PCB_SHAPE(board)
                 arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
                 arc.SetFilled(False)
                 arc.SetStart(pcbnew.wxPointMM(0, 0))
                 arc.SetEnd(pcbnew.wxPointMM(stator_radius, 0))
-                arc.SetCenter(pcbnew.wxPointMM(0, 0))                
+                arc.SetCenter(pcbnew.wxPointMM(0, 0))
                 arc.SetLayer(pcbnew.Edge_Cuts)
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
@@ -132,5 +149,6 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
                 board.Add(arc)
                 # pcb_group.AddItem(arc)
+
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])
