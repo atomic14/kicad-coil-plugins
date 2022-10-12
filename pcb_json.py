@@ -22,11 +22,14 @@ def create_pad(point, width, height, layer):
     }
 
 
-def create_silk(point, text):
+def create_silk(point, text, layer="f", size=5, angle=0):
     return {
         "x": point[0],
         "y": point[1],
         "text": text,
+        "layer": layer,
+        "size": size,
+        "angle": angle,
     }
 
 
@@ -86,7 +89,7 @@ def dump_json(
             "f": [create_track_json(points) for points in tracks_f],
             "b": [create_track_json(points) for points in tracks_b],
         },
-        "mounting_holes": mounting_holes,
+        "mountingHoles": mounting_holes,
     }
     json.dump(json_result, open(filename, "w"))
     return json_result
@@ -158,14 +161,17 @@ def plot_json(json_result):
 
     # plot the silk
     for silk in json_result["silk"]:
+        color = "cyan"
+        if silk["layer"] == "b":
+            color = "magenta"
         ax.text(
             silk["x"],
             silk["y"],
             silk["text"],
             horizontalalignment="center",
             verticalalignment="center",
-            color="black",
-            fontsize=50,
+            color=color,
+            fontsize=silk["size"] * 10,
         )
 
     # plot the vias
@@ -188,7 +194,7 @@ def plot_json(json_result):
         )
 
     # plot the mounting holes
-    for hole in json_result["mounting_holes"]:
+    for hole in json_result["mountingHoles"]:
         ax.add_patch(
             plt.Circle(
                 (hole["x"], hole["y"]),

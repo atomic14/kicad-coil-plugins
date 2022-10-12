@@ -1,6 +1,7 @@
 import pcbnew
 import json
 import wx
+import math
 
 
 def create_tracks(board, group, net, layer, thickness, coords):
@@ -121,10 +122,37 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_txt.SetText(text["text"])
                     pcb_txt.SetPosition(pcbnew.wxPointMM(text["x"], text["y"]))
                     pcb_txt.SetHorizJustify(pcbnew.GR_TEXT_HJUSTIFY_CENTER)
-                    pcb_txt.SetTextSize(pcbnew.wxSize(5000000, 5000000))
+                    pcb_txt.Rotate(
+                        pcbnew.wxPointMM(text["x"], text["y"]), text["angle"]
+                    )
+                    pcb_txt.SetTextSize(
+                        pcbnew.wxSize(
+                            text["size"] * pcbnew.IU_PER_MM,
+                            text["size"] * pcbnew.IU_PER_MM,
+                        )
+                    )
                     pcb_txt.SetLayer(pcbnew.F_SilkS)
+                    if text["layer"] == "b":
+                        pcb_txt.Flip(pcbnew.wxPointMM(text["x"], text["y"]), True)
                     board.Add(pcb_txt)
                     # pcb_group.AddItem(pcb_txt)
+
+                # create the mounting holes
+                for hole in coil_data["mountingHoles"]:
+                    module = pcbnew.FOOTPRINT(board)
+                    module.SetPosition(pcbnew.wxPointMM(hole["x"], hole["y"]))
+                    board.Add(module)
+                    pcb_pad = pcbnew.PAD(module)
+                    pcb_pad.SetSize(pcbnew.wxSizeMM(hole["diameter"], hole["diameter"]))
+                    pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+                    pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_NPTH)
+                    # pcb_pad.SetLayerSet(pcb_pad.NPTHMask())
+                    pcb_pad.SetDrillSize(
+                        pcbnew.wxSizeMM(hole["diameter"], hole["diameter"])
+                    )
+                    pcb_pad.SetPosition(pcbnew.wxPointMM(hole["x"], hole["y"]))
+                    module.Add(pcb_pad)
+                    # pcb_group.AddItem(pcb_hole)
 
                 # create the stator outline
                 arc = pcbnew.PCB_SHAPE(board)
