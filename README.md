@@ -1,3 +1,5 @@
+[![Demo Video](https://img.youtube.com/vi/CDhlx_VMpCc/0.jpg)](https://www.youtube.com/watch?v=CDhlx_VMpCc)
+
 # Getting set up
 
 ## Running the notebook locally
