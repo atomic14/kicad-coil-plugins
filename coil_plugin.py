@@ -30,7 +30,7 @@ def create_tracks(board, group, net, layer, thickness, coords):
 
 class CoilPlugin(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Create coil 3"
+        self.name = "Create coil"
         self.category = "Coils"
         self.description = "Creates a coil"
         # self.show_toolbar_button = False # Optional, defaults to False
