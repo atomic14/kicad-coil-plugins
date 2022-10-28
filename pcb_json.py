@@ -67,6 +67,8 @@ def dump_json(
     pads,
     silk,
     tracks_f,
+    tracks_in1,
+    tracks_in2,
     tracks_b,
     mounting_holes,
 ):
@@ -87,6 +89,8 @@ def dump_json(
         "silk": silk,
         "tracks": {
             "f": [create_track_json(points) for points in tracks_f],
+            "in1": [create_track_json(points) for points in tracks_in1],
+            "in2": [create_track_json(points) for points in tracks_in2],
             "b": [create_track_json(points) for points in tracks_b],
         },
         "mountingHoles": mounting_holes,

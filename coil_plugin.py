@@ -57,15 +57,15 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 # put everything in a group to make it easier to manage
                 pcb_group = pcbnew.PCB_GROUP(board)
                 # board.Add(pcb_group)
+                # find the matching net for the track
+                net = board.FindNet("coils")
+                if net is None:
+                    net = pcbnew.NETINFO_ITEM(board, "coils")
+                    board.Add(net)
+                    # raise "Net not found: {}".format(track["net"])
 
                 # create tracks
                 for track in coil_data["tracks"]["f"]:
-                    # find the matching net for the track
-                    net = board.FindNet("coils")
-                    if net is None:
-                        net = pcbnew.NETINFO_ITEM(board, "coils")
-                        board.Add(net)
-                        # raise "Net not found: {}".format(track["net"])
                     create_tracks(
                         board, pcb_group, net, pcbnew.F_Cu, track_width, track
                     )
@@ -74,6 +74,17 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     create_tracks(
                         board, pcb_group, net, pcbnew.B_Cu, track_width, track
                     )
+
+                for track in coil_data["tracks"]["in1"]:
+                    create_tracks(
+                        board, pcb_group, net, pcbnew.In1_Cu, track_width, track
+                    )
+
+                for track in coil_data["tracks"]["in2"]:
+                    create_tracks(
+                        board, pcb_group, net, pcbnew.In2_Cu, track_width, track
+                    )
+
 
                 # create the vias
                 for via in coil_data["vias"]:
