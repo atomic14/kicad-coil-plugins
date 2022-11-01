@@ -16,9 +16,13 @@ def draw_arc(start_angle, end_angle, radius, step=5):
         start_angle, end_angle = end_angle, start_angle
 
     points = []
-    for angle in np.arange(start_angle, end_angle + step, step):
+    for angle in np.arange(start_angle, end_angle, step):
         x = radius * np.cos(np.deg2rad(angle))
         y = radius * np.sin(np.deg2rad(angle))
+        points.append((x, y))
+    if angle != end_angle:
+        x = radius * np.cos(np.deg2rad(end_angle))
+        y = radius * np.sin(np.deg2rad(end_angle))
         points.append((x, y))
     return points
 

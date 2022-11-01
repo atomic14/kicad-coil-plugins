@@ -47,8 +47,6 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 coil_data = json.load(f)
                 # parameters
                 track_width = coil_data["parameters"]["trackWidth"]
-                stator_hole_radius = coil_data["parameters"]["statorHoleRadius"]
-                stator_radius = coil_data["parameters"]["statorRadius"]
                 pin_diameter = coil_data["parameters"]["pinDiameter"]
                 pin_drill = coil_data["parameters"]["pinDrillDiameter"]
                 via_diameter = coil_data["parameters"]["viaDiameter"]
@@ -175,41 +173,20 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     module.Add(pcb_pad)
                     # pcb_group.AddItem(pcb_hole)
 
-                # create the stator outline
-                arc = pcbnew.PCB_SHAPE(board)
-                arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
-                arc.SetFilled(False)
-                arc.SetStart(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
-                arc.SetEnd(pcbnew.wxPointMM(CENTER_X + stator_radius, CENTER_Y))
-                arc.SetCenter(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
-                arc.SetLayer(pcbnew.Edge_Cuts)
-                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
-                board.Add(arc)
-                # pcb_group.AddItem(arc)
-
-                # crate the outline using a vector
-                # outline = pcbnew.PCB_SHAPE(board)
-                # outline.SetShape(pcbnew.SHAPE_T_POLYGON)
-                # outline.SetFilled(False)
-                # outline.SetLayer(pcbnew.Edge_Cuts)
-                # outline.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
-                # for point in coil_data["outline"]:
-                #     x = point["x"] + CENTER_X
-                #     y = point["y"] + CENTER_Y
-                #     outline.Append(pcbnew.wxPointMM(x, y))
-                # board.Add(outline)
-
-                # create the center hole
-                arc = pcbnew.PCB_SHAPE(board)
-                arc.SetShape(pcbnew.SHAPE_T_CIRCLE)
-                arc.SetFilled(False)
-                arc.SetStart(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
-                arc.SetEnd(pcbnew.wxPointMM(CENTER_X + stator_hole_radius, CENTER_Y))
-                arc.SetCenter(pcbnew.wxPointMM(CENTER_X, CENTER_Y))
-                arc.SetLayer(pcbnew.Edge_Cuts)
-                arc.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
-                board.Add(arc)
-                # pcb_group.AddItem(arc)
+                # crate the edge cuts
+                for edge_cut in coil_data["edgeCuts"]:
+                    ec = pcbnew.PCB_SHAPE(board)
+                    ec.SetShape(pcbnew.SHAPE_T_POLY)
+                    ec.SetFilled(False)
+                    ec.SetLayer(pcbnew.Edge_Cuts)
+                    ec.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                    v = pcbnew.wxPoint_Vector()
+                    for point in edge_cut:
+                        x = point["x"] + CENTER_X
+                        y = point["y"] + CENTER_Y
+                        v.append(pcbnew.wxPointMM(x, y))
+                    ec.SetPolyPoints(v)
+                    board.Add(ec)
 
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])

@@ -58,8 +58,6 @@ def create_track_json(points):
 
 def dump_json(
     filename,
-    stator_radius,
-    stator_hole_radius,
     track_width,
     pin_diam,
     pin_drill,
@@ -74,13 +72,12 @@ def dump_json(
     tracks_in2,
     tracks_b,
     mounting_holes,
+    edge_cuts
 ):
     # dump out the results to json
     json_result = {
         "parameters": {
             "trackWidth": track_width,
-            "statorHoleRadius": stator_hole_radius,
-            "statorRadius": stator_radius,
             "viaDiameter": via_diam,
             "viaDrillDiameter": via_drill,
             "pinDiameter": pin_diam,
@@ -97,14 +94,13 @@ def dump_json(
             "b": [create_track_json(points) for points in tracks_b],
         },
         "mountingHoles": mounting_holes,
+        "edgeCuts": [create_track_json(points) for points in edge_cuts],
     }
     json.dump(json_result, open(filename, "w"))
     return json_result
 
 
 def plot_json(json_result):
-    stator_radius = json_result["parameters"]["statorRadius"]
-    stator_hole_radius = json_result["parameters"]["statorHoleRadius"]
     pin_diam = json_result["parameters"]["pinDiameter"]
     pin_drill = json_result["parameters"]["pinDrillDiameter"]
     # track_width = json_result["parameters"]["trackWidth"]
@@ -123,14 +119,9 @@ def plot_json(json_result):
         ax = df.plot.line(x="x", y="y", color="red", ax=ax)
         ax.axis("equal")
 
-    # hide the legend
-    ax.legend().set_visible(False)
-    # make the plot bigger
-    ax.figure.set_size_inches(11, 11)
-
     # set the axis range
-    ax.set_xlim(-stator_radius - 1, stator_radius + 1)
-    ax.set_ylim(-stator_radius - 1, stator_radius + 1)
+    ax.set_xlim(-30, 30)
+    ax.set_ylim(-30, 30)
 
     # plot the pads
     for pad in json_result["pads"]:
@@ -214,21 +205,14 @@ def plot_json(json_result):
         )
 
     # plot the edge cuts
-    ax.add_patch(
-        plt.Circle(
-            (0, 0),
-            radius=stator_radius,
-            fill=False,
-            color="orange",
-        )
-    )
-    ax.add_patch(
-        plt.Circle(
-            (0, 0),
-            radius=stator_hole_radius,
-            fill=False,
-            color="orange",
-        )
-    )
+    for edge_cut in json_result["edgeCuts"]:
+        df = pd.DataFrame(edge_cut, columns=["x", "y"])
+        ax = df.plot.line(x="x", y="y", color="orange", ax=ax)
+
+    # hide the legend
+    ax.legend().set_visible(False)
+    # make the plot bigger
+    ax.figure.set_size_inches(11, 11)
+
     # save to file
     ax.figure.savefig("coils.png")
