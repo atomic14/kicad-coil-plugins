@@ -187,6 +187,18 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 board.Add(arc)
                 # pcb_group.AddItem(arc)
 
+                # crate the outline using a vector
+                # outline = pcbnew.PCB_SHAPE(board)
+                # outline.SetShape(pcbnew.SHAPE_T_POLYGON)
+                # outline.SetFilled(False)
+                # outline.SetLayer(pcbnew.Edge_Cuts)
+                # outline.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                # for point in coil_data["outline"]:
+                #     x = point["x"] + CENTER_X
+                #     y = point["y"] + CENTER_Y
+                #     outline.Append(pcbnew.wxPointMM(x, y))
+                # board.Add(outline)
+
                 # create the center hole
                 arc = pcbnew.PCB_SHAPE(board)
                 arc.SetShape(pcbnew.SHAPE_T_CIRCLE)

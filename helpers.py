@@ -10,7 +10,7 @@ def get_arc_point(angle, radius):
 
 
 # draw an arc
-def draw_arc(start_angle, end_angle, radius, step=10):
+def draw_arc(start_angle, end_angle, radius, step=5):
     # make sure start_angle is less then end_angle
     if start_angle > end_angle:
         start_angle, end_angle = end_angle, start_angle
