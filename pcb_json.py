@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from helpers import rotate
+
 
 def create_pin(radius, angle, name):
     return {
@@ -12,13 +14,14 @@ def create_pin(radius, angle, name):
     }
 
 
-def create_pad(point, width, height, layer):
+def create_pad(point, width, height, layer, angle=0):
     return {
         "x": point[0],
         "y": point[1],
         "width": width,
         "height": height,
         "layer": layer,
+        "angle": angle,
     }
 
 
@@ -141,6 +144,8 @@ def plot_json(json_result):
                 pad["height"],
                 fill=True,
                 color=color,
+                # rotate by the angle
+                angle=pad["angle"],
             )
         )
 

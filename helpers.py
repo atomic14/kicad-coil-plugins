@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # get the point on an arc at the given angle
 def get_arc_point(angle, radius):
     return (
@@ -10,6 +11,10 @@ def get_arc_point(angle, radius):
 
 # draw an arc
 def draw_arc(start_angle, end_angle, radius, step=10):
+    # make sure start_angle is less then end_angle
+    if start_angle > end_angle:
+        start_angle, end_angle = end_angle, start_angle
+
     points = []
     for angle in np.arange(start_angle, end_angle + step, step):
         x = radius * np.cos(np.deg2rad(angle))
@@ -27,6 +32,18 @@ def rotate(points, angle):
         ]
         for x, y in points
     ]
+
+
+# rotate a point
+def rotate_point(x, y, angle, ox=0, oy=0):
+    x -= ox
+    y -= oy
+    qx = x * np.cos(np.deg2rad(angle)) - y * np.sin(np.deg2rad(angle))
+    qy = x * np.sin(np.deg2rad(angle)) + y * np.cos(np.deg2rad(angle))
+    qx += ox
+    qy += oy
+    return qx, qy
+
 
 
 # move the points out to the distance at the requited angle
