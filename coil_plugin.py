@@ -97,21 +97,21 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     # pcb_group.AddItem(pcb_via)
 
                 # create the pins
-                for pin in coil_data["pins"]:
-                    x = pin["x"] + CENTER_X
-                    y = pin["y"] + CENTER_Y
-                    module = pcbnew.FOOTPRINT(board)
-                    module.SetPosition(pcbnew.wxPointMM(x, y))
-                    board.Add(module)
-                    pcb_pad = pcbnew.PAD(module)
-                    pcb_pad.SetSize(pcbnew.wxSizeMM(pin_diameter, pin_diameter))
-                    pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
-                    pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
-                    pcb_pad.SetLayerSet(pcb_pad.PTHMask())
-                    pcb_pad.SetDrillSize(pcbnew.wxSizeMM(pin_drill, pin_drill))
-                    pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
-                    pcb_pad.SetNetCode(net.GetNetCode())
-                    module.Add(pcb_pad)
+                # for pin in coil_data["pins"]:
+                #     x = pin["x"] + CENTER_X
+                #     y = pin["y"] + CENTER_Y
+                #     module = pcbnew.FOOTPRINT(board)
+                #     module.SetPosition(pcbnew.wxPointMM(x, y))
+                #     board.Add(module)
+                #     pcb_pad = pcbnew.PAD(module)
+                #     pcb_pad.SetSize(pcbnew.wxSizeMM(pin_diameter, pin_diameter))
+                #     pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+                #     pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
+                #     pcb_pad.SetLayerSet(pcb_pad.PTHMask())
+                #     pcb_pad.SetDrillSize(pcbnew.wxSizeMM(pin_drill, pin_drill))
+                #     pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
+                #     pcb_pad.SetNetCode(net.GetNetCode())
+                #     module.Add(pcb_pad)
 
                 # create the pads
                 lset = pcbnew.LSET()
@@ -155,22 +155,22 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     # pcb_group.AddItem(pcb_txt)
 
                 # create the mounting holes
-                for hole in coil_data["mountingHoles"]:
-                    x = hole["x"] + CENTER_X
-                    y = hole["y"] + CENTER_Y
-                    module = pcbnew.FOOTPRINT(board)
-                    module.SetPosition(pcbnew.wxPointMM(x, y))
-                    board.Add(module)
-                    pcb_pad = pcbnew.PAD(module)
-                    pcb_pad.SetSize(pcbnew.wxSizeMM(hole["diameter"], hole["diameter"]))
-                    pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
-                    pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_NPTH)
-                    # pcb_pad.SetLayerSet(pcb_pad.NPTHMask())
-                    pcb_pad.SetDrillSize(
-                        pcbnew.wxSizeMM(hole["diameter"], hole["diameter"])
-                    )
-                    pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
-                    module.Add(pcb_pad)
+                # for hole in coil_data["mountingHoles"]:
+                #     x = hole["x"] + CENTER_X
+                #     y = hole["y"] + CENTER_Y
+                #     module = pcbnew.FOOTPRINT(board)
+                #     module.SetPosition(pcbnew.wxPointMM(x, y))
+                #     board.Add(module)
+                #     pcb_pad = pcbnew.PAD(module)
+                #     pcb_pad.SetSize(pcbnew.wxSizeMM(hole["diameter"], hole["diameter"]))
+                #     pcb_pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+                #     pcb_pad.SetAttribute(pcbnew.PAD_ATTRIB_NPTH)
+                #     # pcb_pad.SetLayerSet(pcb_pad.NPTHMask())
+                #     pcb_pad.SetDrillSize(
+                #         pcbnew.wxSizeMM(hole["diameter"], hole["diameter"])
+                #     )
+                #     pcb_pad.SetPosition(pcbnew.wxPointMM(x, y))
+                #     module.Add(pcb_pad)
                     # pcb_group.AddItem(pcb_hole)
 
                 # crate the edge cuts

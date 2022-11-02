@@ -37,6 +37,8 @@ def rotate(points, angle):
         for x, y in points
     ]
 
+def scale(points, scale):
+    return [[x * scale, y * scale] for x, y in points]
 
 # rotate a point
 def rotate_point(x, y, angle, ox=0, oy=0):
