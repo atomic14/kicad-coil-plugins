@@ -188,5 +188,34 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     ec.SetPolyPoints(v)
                     board.Add(ec)
 
+                # put it on the solder mask as well - who knows why...
+                for edge_cut in coil_data["edgeCuts"]:
+                    ec = pcbnew.PCB_SHAPE(board)
+                    ec.SetShape(pcbnew.SHAPE_T_POLY)
+                    ec.SetFilled(False)
+                    ec.SetLayer(pcbnew.F_Mask)
+                    ec.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                    v = pcbnew.wxPoint_Vector()
+                    for point in edge_cut:
+                        x = point["x"] + CENTER_X
+                        y = point["y"] + CENTER_Y
+                        v.append(pcbnew.wxPointMM(x, y))
+                    ec.SetPolyPoints(v)
+                    board.Add(ec)
+
+                for edge_cut in coil_data["edgeCuts"]:
+                    ec = pcbnew.PCB_SHAPE(board)
+                    ec.SetShape(pcbnew.SHAPE_T_POLY)
+                    ec.SetFilled(False)
+                    ec.SetLayer(pcbnew.B_Mask)
+                    ec.SetWidth(int(0.1 * pcbnew.IU_PER_MM))
+                    v = pcbnew.wxPoint_Vector()
+                    for point in edge_cut:
+                        x = point["x"] + CENTER_X
+                        y = point["y"] + CENTER_Y
+                        v.append(pcbnew.wxPointMM(x, y))
+                    ec.SetPolyPoints(v)
+                    board.Add(ec)
+
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])
