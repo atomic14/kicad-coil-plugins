@@ -161,5 +161,4 @@ cython_debug/
 
 *.json
 *.png
-*.csv
 *.vol
