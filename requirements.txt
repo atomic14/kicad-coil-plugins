@@ -4,9 +4,4 @@ numpy
 pandas
 scikit-spatial
 pre-commit
-tqdm
 plotly
-magpylib
-pyvista
-mayavi
-PySide
