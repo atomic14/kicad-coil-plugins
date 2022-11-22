@@ -25,6 +25,10 @@ ln -s ${PWD}/coil_plugin.py ~/Documents/KiCad/6.0/scripting/plugins/coil_plugin.
 
 The project is still very experimental - so there are no guarantees that these will work or do anything useful...
 
-* 6 circular coils - https://www.pcbway.com/project/shareproject/Proof_of_concept_6_coil_spiral_PCB_stator_23ae7370.html
-* 6 wedge coils - https://www.pcbway.com/project/shareproject/Proof_of_concept_6_coil_wedge_PCB_stator_c231a379.html
-* 12 wedge coils - https://www.pcbway.com/project/shareproject/Proof_of_concept_12_coil_wedge_PCB_stator_c54d9374.html
+- 6 circular coils - https://www.pcbway.com/project/shareproject/Proof_of_concept_6_coil_spiral_PCB_stator_23ae7370.html
+- 6 wedge coils - https://www.pcbway.com/project/shareproject/Proof_of_concept_6_coil_wedge_PCB_stator_c231a379.html
+- 12 wedge coils - https://www.pcbway.com/project/shareproject/Proof_of_concept_12_coil_wedge_PCB_stator_c54d9374.html
+
+## Building python to take advantage of the M1 Mac Multiprocessors
+
+https://www.reddit.com/r/Python/comments/qog8x3/if_you_are_using_apples_m1_macs_compiling_numpy/

@@ -4,3 +4,4 @@ numpy
 pandas
 scikit-spatial
 pre-commit
+plotly
