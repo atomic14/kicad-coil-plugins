@@ -5,3 +5,4 @@ pandas
 scikit-spatial
 pre-commit
 plotly
+multiprocess
