@@ -23,7 +23,7 @@ def create_tracks(board, group, net, layer, thickness, coords):
             if net is not None:
                 track.SetNetCode(net.GetNetCode())
             board.Add(track)
-            # group.AddItem(track)
+            group.AddItem(track)
         last_x = x
         last_y = y
 
@@ -54,38 +54,39 @@ class CoilPlugin(pcbnew.ActionPlugin):
 
                 # put everything in a group to make it easier to manage
                 pcb_group = pcbnew.PCB_GROUP(board)
-                # board.Add(pcb_group)
-                # find the matching net for the track
-                net = board.FindNet("coils")
-                if net is None:
-                    net = pcbnew.NETINFO_ITEM(board, "coils")
-                    board.Add(net)
-                    # raise "Net not found: {}".format(track["net"])
+                board.Add(pcb_group)
 
                 # create tracks
                 for track in coil_data["tracks"]["f"]:
+                    net = self.findNet(board, track)
                     create_tracks(
-                        board, pcb_group, net, pcbnew.F_Cu, track_width, track
+                        board, pcb_group, net, pcbnew.F_Cu, track["width"], track["pts"]
                     )
 
                 for track in coil_data["tracks"]["b"]:
+                    net = self.findNet(board, track)
                     create_tracks(
-                        board, pcb_group, net, pcbnew.B_Cu, track_width, track
+                        board, pcb_group, net, pcbnew.B_Cu, track["width"], track["pts"]
                     )
 
-                for track in coil_data["tracks"]["in1"]:
-                    create_tracks(
-                        board, pcb_group, net, pcbnew.In1_Cu, track_width, track
-                    )
-
-                for track in coil_data["tracks"]["in2"]:
-                    create_tracks(
-                        board, pcb_group, net, pcbnew.In2_Cu, track_width, track
-                    )
-
+                pcb_layers = [
+                    pcbnew.In1_Cu,
+                    pcbnew.In2_Cu,
+                    pcbnew.In3_Cu,
+                    pcbnew.In4_Cu,
+                    pcbnew.In5_Cu,
+                    pcbnew.In6_Cu,                    
+                ]
+                for i, track_list in enumerate(coil_data["tracks"]["in"]):
+                    for track in track_list:
+                        net = self.findNet(board, track)
+                        create_tracks(
+                            board, pcb_group, net, pcb_layers[i], track["width"], track["pts"]
+                        )
 
                 # create the vias
                 for via in coil_data["vias"]:
+                    net = self.findNet(board, via)
                     pcb_via = pcbnew.PCB_VIA(board)
                     pcb_via.SetPosition(
                         pcbnew.wxPointMM(via["x"] + CENTER_X, via["y"] + CENTER_Y)
@@ -94,7 +95,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     pcb_via.SetDrill(int(via_drill_diameter * 1e6))
                     pcb_via.SetNetCode(net.GetNetCode())
                     board.Add(pcb_via)
-                    # pcb_group.AddItem(pcb_via)
+                    pcb_group.AddItem(pcb_via)
 
                 # create the pins
                 # for pin in coil_data["pins"]:
@@ -117,6 +118,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                 lset = pcbnew.LSET()
                 lset.AddLayer(pcbnew.B_Cu)
                 for pin in coil_data["pads"]:
+                    net = self.findNet(board, pin)
                     x = pin["x"] + CENTER_X
                     y = pin["y"] + CENTER_Y
                     module = pcbnew.FOOTPRINT(board)
@@ -152,7 +154,7 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     if text["layer"] == "b":
                         pcb_txt.Flip(pcbnew.wxPointMM(x, y), True)
                     board.Add(pcb_txt)
-                    # pcb_group.AddItem(pcb_txt)
+                    pcb_group.AddItem(pcb_txt)
 
                 # create the mounting holes
                 # for hole in coil_data["mountingHoles"]:
@@ -217,5 +219,16 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     ec.SetPolyPoints(v)
                     board.Add(ec)
 
+    def findNet(self, board, element):
+        # find the matching net for the track
+        net_name = "coils"
+        if "net" in element:
+            net_name = element["net"]
+        net = board.FindNet(net_name)
+        if net is None:
+            net = pcbnew.NETINFO_ITEM(board, net_name)
+            board.Add(net)
+            # raise "Net not found: {}".format(net_name)
+        return net
 
 CoilPlugin().register()  # Instantiate and register to Pcbnew])

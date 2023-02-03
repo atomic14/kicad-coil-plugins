@@ -6,15 +6,16 @@ import matplotlib.pyplot as plt
 from helpers import rotate
 
 
-def create_pin(radius, angle, name):
+def create_pin(radius, angle, name, net_name):
     return {
         "x": radius * np.cos(np.deg2rad(angle)),
         "y": radius * np.sin(np.deg2rad(angle)),
         "name": name,
+        "net": net_name,
     }
 
 
-def create_pad(point, width, height, layer, angle=0):
+def create_pad(point, width, height, layer, net_name, angle=0):
     return {
         "x": point[0],
         "y": point[1],
@@ -22,6 +23,7 @@ def create_pad(point, width, height, layer, angle=0):
         "height": height,
         "layer": layer,
         "angle": angle,
+        "net": net_name,
     }
 
 
@@ -36,12 +38,12 @@ def create_silk(point, text, layer="f", size=5, angle=0):
     }
 
 
-def create_via(point):
-    return {"x": point[0], "y": point[1]}
+def create_via(point, net_name):
+    return {"x": point[0], "y": point[1], "net": net_name}
 
 
-def create_track(points):
-    return [{"x": x, "y": y} for x, y in points]
+# def create_track(points, net_name):
+#     return [{"x": x, "y": y, "net": net_name} for x, y in points]
 
 
 def create_mounting_hole(point, diameter):
@@ -68,12 +70,37 @@ def dump_json(
     pads,
     silk,
     tracks_f,
-    tracks_in1,
-    tracks_in2,
+    tracks_in,
     tracks_b,
     mounting_holes,
     edge_cuts
 ):
+    tracks_inner = [[
+        {
+            "net":track_info["net"], 
+            "width": track_info["width"] if "width" in track_info else track_width,
+            "pts":create_track_json(track_info["pts"]),
+        } 
+        for track_info in track_vals] 
+        for i, track_vals in enumerate(tracks_in)]
+    tracks = {
+        "f": [
+            {
+                "net":track_info["net"],
+                "width": track_info["width"] if "width" in track_info else track_width,
+                "pts":create_track_json(track_info["pts"]),
+            }
+            for track_info in tracks_f],
+        "b": [
+            {
+                "net":track_info["net"],
+                "width": track_info["width"] if "width" in track_info else track_width,
+                "pts":create_track_json(track_info["pts"]),
+            }
+            for track_info in tracks_b],
+        "in": tracks_inner
+    }
+
     # dump out the results to json
     json_result = {
         "parameters": {
@@ -87,12 +114,7 @@ def dump_json(
         "pins": pins,
         "pads": pads,
         "silk": silk,
-        "tracks": {
-            "f": [create_track_json(points) for points in tracks_f],
-            "in1": [create_track_json(points) for points in tracks_in1],
-            "in2": [create_track_json(points) for points in tracks_in2],
-            "b": [create_track_json(points) for points in tracks_b],
-        },
+        "tracks": tracks,
         "mountingHoles": mounting_holes,
         "edgeCuts": [create_track_json(points) for points in edge_cuts],
     }
@@ -109,13 +131,13 @@ def plot_json(json_result):
     # plot the back tracks
     ax = None
     for track in json_result["tracks"]["b"]:
-        df = pd.DataFrame(track, columns=["x", "y"])
+        df = pd.DataFrame(track["pts"], columns=["x", "y"])
         ax = df.plot.line(x="x", y="y", color="blue", ax=ax)
         ax.axis("equal")
 
     # plot the front tracks
     for track in json_result["tracks"]["f"]:
-        df = pd.DataFrame(track, columns=["x", "y"])
+        df = pd.DataFrame(track["pts"], columns=["x", "y"])
         ax = df.plot.line(x="x", y="y", color="red", ax=ax)
         ax.axis("equal")
 
