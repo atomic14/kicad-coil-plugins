@@ -172,3 +172,5 @@ fp-info-cache
 ExamplePCB/*/*/*.zip
 knobby_8_layer_12_coils_60_leds_70x20_complete-backups
 
+# mac files
+.DS_Store
