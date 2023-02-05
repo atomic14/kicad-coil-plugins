@@ -73,7 +73,8 @@ def dump_json(
     tracks_in,
     tracks_b,
     mounting_holes,
-    edge_cuts
+    edge_cuts,
+    components
 ):
     tracks_inner = [[
         {
@@ -117,6 +118,7 @@ def dump_json(
         "tracks": tracks,
         "mountingHoles": mounting_holes,
         "edgeCuts": [create_track_json(points) for points in edge_cuts],
+        "components": components,
     }
     json.dump(json_result, open(filename, "w"))
     return json_result

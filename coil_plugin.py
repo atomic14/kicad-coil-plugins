@@ -219,11 +219,38 @@ class CoilPlugin(pcbnew.ActionPlugin):
                     ec.SetPolyPoints(v)
                     board.Add(ec)
 
+                # Add components
+                # coil_data["components"] = [
+                #     {
+                #         "ref": "LED1",
+                #         "pads": [
+                #             {"num": "1", "net": "LED_IO_36"},
+                #             {"num": "2", "net": "GND"},
+                #             {"num": "3", "net": "LED_IO_35"},
+                #             {"num": "4", "net": "V+"},
+                #         ],
+                #     }
+                # ]
+                for i, component in enumerate(coil_data["components"]):
+                    component_ref = component["ref"]
+                    module = board.FindFootprintByReference(component_ref)
+                    for pad in component["pads"]:
+                        pad_num = str(pad["num"])
+                        pcb_pad = module.FindPadByNumber(pad_num)
+                        net = self.findNet(board, pad)
+                        # wx.MessageBox("ref: " + component_ref + " Pad: " + pad_num + " Net: " + pad["net"] + " NetCode: " + str(net.GetNetCode()))
+                        if net is not None:
+                            pcb_pad.SetNetCode(net.GetNetCode())
+                        module.Add(pcb_pad)
+                        pcb_group.AddItem(pcb_pad)
+
     def findNet(self, board, element):
         # find the matching net for the track
-        net_name = "coils"
+        net_name = ""
         if "net" in element:
             net_name = element["net"]
+        if net_name == "":
+            return None
         net = board.FindNet(net_name)
         if net is None:
             net = pcbnew.NETINFO_ITEM(board, net_name)
