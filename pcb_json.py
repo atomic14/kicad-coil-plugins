@@ -27,7 +27,7 @@ def create_pad(point, width, height, layer, net_name, angle=0):
     }
 
 
-def create_silk(point, text, layer="f", size=5, angle=0):
+def create_silk(point, text, layer="f", size=1, angle=0):
     return {
         "x": point[0],
         "y": point[1],
