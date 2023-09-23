@@ -82,16 +82,10 @@ def dump_json(
             "width": track_info["width"] if "width" in track_info else track_width,
             "pts":create_track_json(track_info["pts"]),
         } 
-        for track_info in track_vals] 
+        for track_info in track_vals]
         for i, track_vals in enumerate(tracks_in)]
+
     tracks = {
-        "f": [
-            {
-                "net":track_info["net"],
-                "width": track_info["width"] if "width" in track_info else track_width,
-                "pts":create_track_json(track_info["pts"]),
-            }
-            for track_info in tracks_f],
         "b": [
             {
                 "net":track_info["net"],
@@ -99,6 +93,15 @@ def dump_json(
                 "pts":create_track_json(track_info["pts"]),
             }
             for track_info in tracks_b],
+
+        "f": [
+            {
+                "net":track_info["net"],
+                "width": track_info["width"] if "width" in track_info else track_width,
+                "pts":create_track_json(track_info["pts"]),
+            }
+            for track_info in tracks_f],
+
         "in": tracks_inner
     }
 
@@ -137,6 +140,16 @@ def plot_json(json_result):
         ax = df.plot.line(x="x", y="y", color="blue", ax=ax)
         ax.axis("equal")
 
+    colors = ["green", "orange", "cyan", "magenta"]
+    color_index = 0
+    # plot the inner tracks
+    for index in json_result["tracks"]["in"]:
+        for track in index:
+            df = pd.DataFrame(track["pts"], columns=["x", "y"])
+            ax = df.plot.line(x="x", y="y", color=colors[color_index % 4], ax=ax)
+            ax.axis("equal")
+        color_index += 1
+
     # plot the front tracks
     for track in json_result["tracks"]["f"]:
         df = pd.DataFrame(track["pts"], columns=["x", "y"])
@@ -146,6 +159,7 @@ def plot_json(json_result):
     # set the axis range
     ax.set_xlim(-30, 30)
     ax.set_ylim(-30, 30)
+    ax.invert_yaxis() # match KiCAD where y-axis is inverted (numbers inrease DOWN the screen)
 
     # plot the pads
     for pad in json_result["pads"]:
