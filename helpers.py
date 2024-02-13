@@ -1,12 +1,14 @@
 import numpy as np
 
-
-# get the point on an arc at the given angle
-def get_arc_point(angle, radius):
+def pol2cat(angle, radius):
     return (
         radius * np.cos(np.deg2rad(angle)),
         radius * np.sin(np.deg2rad(angle)),
     )
+
+# get the point on an arc at the given angle
+def get_arc_point(angle, radius):
+    return pol2cat(angle, radius)
 
 
 # draw an arc
@@ -93,9 +95,12 @@ def optimize_points(points):
                 angle = np.arccos(dot)
                 if angle > np.deg2rad(5):
                     optimized_points.append(points[i])
-    print("Optimised from {} to {} points".format(len(points), len(optimized_points)))
+    # print("Optimised from {} to {} points".format(len(points), len(optimized_points)))
     return optimized_points
 
+def chaikin_(points, iterations):
+    points = optimize_points(points) # always optimize the points
+    chaikin(points, iterations)
 
 def chaikin(points, iterations):
     if iterations == 0:
