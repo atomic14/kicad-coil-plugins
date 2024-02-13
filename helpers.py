@@ -100,7 +100,7 @@ def optimize_points(points):
 
 def chaikin_(points, iterations):
     points = optimize_points(points) # always optimize the points
-    chaikin(points, iterations)
+    return chaikin(points, iterations)
 
 def chaikin(points, iterations):
     if iterations == 0:
