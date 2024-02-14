@@ -4,7 +4,7 @@ import wx
 import math
 
 
-CENTER_X = 150
+CENTER_X = -150
 CENTER_Y = 100
 
 
