@@ -21,6 +21,10 @@ Add the plugin to KiCad by symbolically linking it to the `kicad_plugins` direct
 ln -s ${PWD}/coil_plugin.py ~/Documents/KiCad/6.0/scripting/plugins/coil_plugin.py
 ```
 
+```bash
+ln -s ${PWD}/coil_plugin_kicad7.py ~/Documents/KiCad/7.0/scripting/plugins/coil_plugin.py
+```
+
 ## You can order the PCBs directly from PCBWay (or download the Gerbers) from these links
 
 The project is still very experimental - so there are no guarantees that these will work or do anything useful...

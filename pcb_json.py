@@ -42,6 +42,10 @@ def create_via(point, net_name):
     return {"x": point[0], "y": point[1], "net": net_name}
 
 
+def create_track(points, net_name):
+    return {"net": net_name, "pts": points}
+    
+
 # def create_track(points, net_name):
 #     return [{"x": x, "y": y, "net": net_name} for x, y in points]
 
@@ -124,7 +128,8 @@ def dump_json(
     return json_result
 
 
-def plot_json(json_result):
+
+def plot_json(json_result, r_dim=60):
     pin_diam = json_result["parameters"]["pinDiameter"]
     pin_drill = json_result["parameters"]["pinDrillDiameter"]
     # track_width = json_result["parameters"]["trackWidth"]
@@ -144,8 +149,8 @@ def plot_json(json_result):
         ax.axis("equal")
 
     # set the axis range
-    ax.set_xlim(-30, 30)
-    ax.set_ylim(-30, 30)
+    ax.set_xlim(-r_dim, r_dim)
+    ax.set_ylim(-r_dim, r_dim)
 
     # plot the pads
     for pad in json_result["pads"]:
@@ -185,7 +190,7 @@ def plot_json(json_result):
 
     # plot the silk
     for silk in json_result["silk"]:
-        color = "cyan"
+        color = "black"
         if silk["layer"] == "b":
             color = "magenta"
         ax.text(
@@ -237,6 +242,9 @@ def plot_json(json_result):
     ax.legend().set_visible(False)
     # make the plot bigger
     ax.figure.set_size_inches(11, 11)
-
+    # enable grid
+    ax.grid(True)
     # save to file
     ax.figure.savefig("coils.png")
+    # ax.set_facecolor('black')
+
